@@ -1,13 +1,14 @@
-from taifun import Taifun
-
+import os
 import urllib.parse as urlparse
 
 import httpx
-
+import openai
 import rich
-
 from rich.prompt import Prompt
 
+from taifun import Taifun
+
+openai.api_key_path = os.path.expanduser("~") + "/.openai_api_key"
 
 taifun = Taifun()
 
@@ -22,7 +23,6 @@ def get_location() -> str:
     location = Prompt.ask("What is your location?")
 
     return location
-
 
 
 @taifun.fn()
@@ -77,7 +77,6 @@ def get_current_weather(lon: float, lat: float):
 
 
 if __name__ == "__main__":
-
-    result = taifun.run("Should I wear sunglasses?")
+    result = taifun.run("Will I need an umbrella today?")
 
     rich.print(result)

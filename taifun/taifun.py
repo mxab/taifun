@@ -6,7 +6,7 @@ import openai
 from docstring_parser import parse
 
 from pydantic import RootModel, Field
-from taifun.openai_api import Function, Message, Role
+from taifun.openai_api import Function, Message, Role, FunctionCall
 from rich.console import Console
 
 from pydantic import create_model
@@ -118,10 +118,17 @@ class Taifun:
                 functions=functions,
                 function_call="auto",  # auto is default, but we'll be explicit
             )
-            response_message = Message.model_validate(response["choices"][0]["message"])
+            message_dict = response["choices"][0]["message"]
+            response_message = Message(
+                role=message_dict["role"],
+                content=message_dict["content"] or "",
+                function_call=FunctionCall(name=message_dict["function_call"]["name"], arguments=message_dict["function_call"]["arguments"])
+                if message_dict.get("function_call")
+                else None,
+            )
 
             messages.append(
-                response_message
+                response_message.model_dump(exclude_none=True)
             )  # extend conversation with assistant's reply
             # Step 2: check if GPT wanted to call a function
             if response_message.function_call:
@@ -139,7 +146,9 @@ class Taifun:
                         role=Role.function,
                         name=function_name,
                         content=json.dumps(function_response),
-                    ).model_dump()
+                    ).model_dump(
+                        exclude_none=True
+                    )
                 )
 
             elif response_message.content:

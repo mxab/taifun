@@ -23,5 +23,6 @@ class FunctionCall(BaseModel):
 
 class Message(BaseModel):
     role: Role
-    content: str
+    content: str = ""
+    name: str | None = None
     function_call: FunctionCall | None = None
