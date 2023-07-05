@@ -2,22 +2,11 @@ from pydantic import BaseModel
 from enum import StrEnum, auto
 
 
-class Parameter(BaseModel):
-    type: str
-    description: str | None = None
-    enum: list | None = None
-
-
-class FunctionParameters(BaseModel):
-    type: str = "object"
-    properties: dict[str, Parameter]
-    required: list[str]
-
 
 class Function(BaseModel):
     name: str
     description: str
-    parameters: FunctionParameters
+    parameters: dict
 
 
 class Role(StrEnum):

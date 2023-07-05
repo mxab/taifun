@@ -8,4 +8,12 @@
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
     "python.formatting.provider": "none"
+,
+    "python.testing.unittestArgs": [
+        "-vv",
+        "-s",
+        ".",
+        "-p",
+        "*test*.py"
+    ]
 }

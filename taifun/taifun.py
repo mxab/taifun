@@ -5,20 +5,19 @@ from typing import Any, Callable, Dict, Tuple
 import openai
 from docstring_parser import parse
 
-from pydantic import RootModel
-from taifun.openai_api import (Function,  FunctionParameters,
-                               Message, Parameter, Role)
+from pydantic import RootModel, Field
+from taifun.openai_api import Function, Message, Role
+from rich.console import Console
+
+from pydantic import create_model
 
 
 class Taifun:
-
-    openai_model = "gpt-3.5-turbo-0613"
-    functions: Dict[str, Tuple[Function, Callable]] = {}
-
-    __end_of_conversation = False
-    __end_conversation_reason: str | None = None
-
-    def __init__(self):
+    def __init__(self, openai_model: str = "gpt-3.5-turbo-0613"):
+        self.__end_of_conversation = False
+        self.__end_conversation_reason: str | None = None
+        self.functions: Dict[str, Tuple[Function, Callable]] = {}
+        self.openai_model = openai_model
         self.fn()(self.__end_conversation)
 
     def fn(self: "Taifun") -> Any:
@@ -34,8 +33,8 @@ class Taifun:
                 for doc_param in parsed_docstring.params
             }
 
-            parameters_by_name = {}
-            required = []
+            param_type_default_tuples_by_name = {}
+
             for param in sig.parameters.values():
                 if param.name == "self":
                     continue
@@ -46,20 +45,25 @@ class Taifun:
 
                 description = docstring_params.get(param.name, "") or ""
 
-                parameters_by_name[param.name] = Parameter(
-                    type=annotation_to_json_schema_type(param.annotation),
-                    description=description,
+                param_type_default_tuples_by_name[param.name] = (
+                    param.annotation,
+                    Field(
+                        title=None,
+                        description=description,
+                        default=param.default
+                        if param.default is not inspect.Parameter.empty
+                        else ...,
+                    ),
                 )
-                if param.default is inspect.Parameter.empty:
-                    required.append(param.name)
+
+            parameters_schema: dict = create_model(
+                "FunctionParameters", **param_type_default_tuples_by_name
+            ).model_json_schema()
 
             fn: Function = Function(
                 name=func.__name__,
                 description=parsed_docstring.short_description or "",
-                parameters=FunctionParameters(
-                    properties=parameters_by_name,
-                    required=required,
-                ),
+                parameters=parameters_schema,
             )
             self.functions[func.__name__] = (fn, func)
 
@@ -146,19 +150,3 @@ class Taifun:
                 raise Exception("Unknown response: " + response_message.content)
 
         return self.__end_conversation_reason
-
-
-def annotation_to_json_schema_type(annotation: Any) -> str:
-    if annotation is str:
-        return "string"
-    if annotation is int:
-        return "integer"
-    if annotation is float:
-        return "number"
-    if annotation is bool:
-        return "boolean"
-    if annotation is list:
-        return "array"
-    if annotation is dict:
-        return "object"
-    return "string"
