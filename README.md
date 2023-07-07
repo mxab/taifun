@@ -58,7 +58,7 @@ def get_lang_lat(location: str) -> dict:
 
     return {"latitute": lat, "longitude": lng}
 
-
+@taifun.fn()
 def get_current_weather(lon: float, lat: float):
     """Get the current weather in a given longitude and latitude
 
