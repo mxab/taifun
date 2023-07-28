@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "taifun"
 version = "0.1.0"
-description = ""
+description = "Function mapper for Open AI Chat"
 authors = ["Max Fröhlich <maxbruchmann@gmail.com>"]
 readme = "README.md"
 
@@ -22,5 +22,5 @@ flake8 = "^6.0.0"
 pytest-icdiff = "^0.6"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry_dynamic_versioning.backend"

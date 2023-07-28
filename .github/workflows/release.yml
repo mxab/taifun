@@ -1,0 +1,24 @@
+name: Python package
+on:
+  push:
+    tags:
+      - "v*.*.*"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.12
+
+      - name: Run image
+        uses: abatilo/actions-poetry@v2.3.0
+        with:
+          poetry-version: 1.5.1
+      - name: View poetry --help
+        run: poetry --version
+      - name: "Add dynamic versioning plugin"
+        run: poetry self add "poetry-dynamic-versioning[plugin]"
+      - name: Publish
+        run: poetry publish --build --password=${{ secrets.PYPI_TOKEN }} --username=__token__

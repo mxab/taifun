@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from enum import StrEnum, auto
 
 
-
 class Function(BaseModel):
     name: str
     description: str

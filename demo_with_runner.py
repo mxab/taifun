@@ -5,10 +5,15 @@ import httpx
 import openai
 import rich
 from rich.prompt import Prompt
+from pydantic import BaseModel, Field
+from taifun import Taifun, TaifunConversationRunner
 
-from taifun import Taifun
+# This demo shows how to use the TaifunConversationRunner to run a Taifun
+# We provide 3 functions:
+# 1. get_location: asks the user for their location
+# 2. get_lang_lat: gets the latitude and longitude of a location
+# 3. get_current_weather: gets the current weather of a location
 
-openai.api_key_path = os.path.expanduser("~") + "/.openai_api_key"
 
 taifun = Taifun()
 
@@ -50,13 +55,22 @@ def get_lang_lat(location: str) -> dict:
     return {"latitute": lat, "longitude": lng}
 
 
-def get_current_weather(lon: float, lat: float):
+class Coordinates(BaseModel):
+    latitude: float = Field(
+        ..., title="Latitude", description="The latitude of a location"
+    )
+    longitude: float = Field(
+        ..., title="Longitude", description="The longitude of a location"
+    )
+
+
+@taifun.fn()
+def get_current_weather(coordinates: Coordinates):
     """Get the current weather in a given longitude and latitude
 
     Parameters
     ----------
-    lon (float): longitude of the location
-    lat (float): latitude of the location
+    coordinates (Coordinates): the latitude and longitude of a location
 
     Returns:
         dict: a dictionary of the current weather
@@ -66,8 +80,8 @@ def get_current_weather(lon: float, lat: float):
     response = httpx.get(
         "https://api.open-meteo.com/v1/forecast",
         params={
-            "latitude": lat,
-            "longitude": lon,
+            "latitude": coordinates.latitude,
+            "longitude": coordinates.longitude,
             "current_weather": True,
         },
     )
@@ -77,6 +91,8 @@ def get_current_weather(lon: float, lat: float):
 
 
 if __name__ == "__main__":
-    result = taifun.run("Will I need an umbrella today?")
+    openai.api_key_path = os.path.expanduser("~") + "/.openai_api_key"
+    runner = TaifunConversationRunner(taifun)
+    result = runner.run("Will I need an umbrella today?")
 
     rich.print(result)
