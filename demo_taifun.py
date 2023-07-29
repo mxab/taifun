@@ -16,7 +16,8 @@ def weather_forcast(location: str) -> str:
 
     Parameters
     ----------
-    location (str): the location to get the weather forcast for
+    location: str
+        the location to get the weather forcast for
 
     """
 

@@ -37,7 +37,8 @@ def get_lang_lat(location: str) -> dict:
 
     Parameters
     ----------
-    location (str): the user's location like a Ciry and State, e.g. San Francisco, CA
+    location: str
+        the user's location like a Ciry and State, e.g. San Francisco, CA
 
     """
 
@@ -70,7 +71,8 @@ def get_current_weather(coordinates: Coordinates):
 
     Parameters
     ----------
-    coordinates (Coordinates): the latitude and longitude of a location
+    coordinates: Coordinates
+        the latitude and longitude of a location
 
     Returns:
         dict: a dictionary of the current weather

@@ -9,7 +9,97 @@ Then takes a task and loops through the conversational flow until the task is co
 
 ## Usage
 
-### Just functions to pass to OpenAI
+Initialize a Taifun instance and decorate your functions with `@taifun.fn()`
+
+```python
+
+taifun = Taifun()
+
+@taifun.fn()
+def weather_forcast(location: str) -> str:
+    """
+    Get the weather forcast for a given location
+
+    Parameters
+    ----------
+    location: str
+        the user's location like a Ciry and State, e.g. San Francisco, CA
+
+    """
+
+    return f"The weather in {location} is rainy"
+
+```
+
+Then you can use the `functions_as_dict` method to get a dict that can be passed to OpenAI's functions field
+
+```python
+functions = taifun.functions_as_dict()
+```
+
+Then you can use the `handle_function_call` method to handle a function call from OpenAI's API
+
+
+`functions` is a dict that can be passed to OpenAI's functions field
+
+```json
+[
+ {
+  "name": "weather_forcast",
+  "description": "Get the weather forcast for a given location",
+  "parameters": {
+   "properties": {
+    "location": {
+     "description": "the user's location like a Ciry and State, e.g. San Francisco, CA",
+     "title": "Location",
+     "type": "string"
+    }
+   },
+   "required": [
+    "location"
+   ],
+   "title": "FunctionParameters",
+   "type": "object"
+  }
+ }
+]
+```
+
+Pass functions to the `functions` field of OpenAI's API
+
+```python
+
+messages = [...]
+result = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages=messages,
+    functions=functions,
+    function_call="auto",
+)
+```
+
+If the response from OpenAI's API has a function call, you can handle it with `handle_function_call`
+
+```python
+function_call = result["choices"][0]["message"].get("function_call")
+
+if function_call is not None:
+    # handle the function call
+    function_response = taifun.handle_function_call(function_call)
+    # return the function response
+    messages.append(
+        {
+            "role": "function",
+            "name": function_call["name"],
+            "content": function_response,
+        }
+    )
+    # reply
+```
+
+
+
+### Demo with functions to pass to OpenAI
 
 ```python
 
@@ -23,7 +113,8 @@ def weather_forcast(location: str) -> str:
 
     Parameters
     ----------
-    location (str): the location to get the weather forcast for
+    location: str
+        the location to get the weather forcast for
 
     """
 
@@ -82,6 +173,8 @@ if function_call is not None:
 
 ```
 
+### A full example including the TaifunConversationRunner
+
 ```python
 
 taifun = Taifun()
@@ -106,7 +199,8 @@ def get_lang_lat(location: str) -> dict:
 
     Parameters
     ----------
-    location (str): the user's location like a Ciry and State, e.g. San Francisco, CA
+    location: str 
+        the user's location like a Ciry and State, e.g. San Francisco, CA
 
     """
 
@@ -139,7 +233,8 @@ def get_current_weather(coordinates: Coordinates):
 
     Parameters
     ----------
-    coordinates (Coordinates): the latitude and longitude of a location
+    coordinates: Coordinates
+        the latitude and longitude of a location
 
     Returns:
         dict: a dictionary of the current weather

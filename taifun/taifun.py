@@ -10,6 +10,15 @@ class FunctionCallDict(TypedDict):
     arguments: str
 
 
+class MissingDescriptionError(Exception):
+    def __init__(self, function_name: str, param_name: str):
+        self.function_name = function_name
+        self.param_name = param_name
+
+    def __str__(self):
+        return f"Missing description for parameter {self.param_name} in function {self.function_name}"
+
+
 class Taifun:
     def __init__(self):
         self.functions: Dict[str, Tuple[Function, Callable, BaseModel]] = {}
@@ -37,7 +46,9 @@ class Taifun:
                 if param.name == "return_type":
                     continue
 
-                description = docstring_params.get(param.name, "") or ""
+                description = docstring_params.get(param.name, "")
+                if description == "":
+                    raise MissingDescriptionError(func.__name__, param.name)
 
                 param_type_default_tuples_by_name[param.name] = (
                     param.annotation,

@@ -1,6 +1,7 @@
-from taifun.taifun import Taifun
+from taifun.taifun import Taifun, MissingDescriptionError
 from pydantic import BaseModel, Field
 import json
+import pytest
 
 
 def test_functions_dict():
@@ -230,31 +231,22 @@ def test_functions_dict_with_pydantic_param_function_call():
         == "Goodbye World"
     )
 
-    # assert fn_dict[0] == {
-    #     "name": "hello",
-    #     "description": "Say hello",
-    #     "parameters": {
-    #         "properties": {
-    #             "greeting": {
-    #                 "properties": {
-    #                     "name": {
-    #                         "type": "string",
-    #                         "title": "Name",
-    #                         "description": "The name of the person that should be greeted",
-    #                     },
-    #                     "salutation": {
-    #                         "type": "string",
-    #                         "title": "Salutation",
-    #                         "description": "The salutation to use",
-    #                     },
-    #                     "required": ["name", "greeting"],
-    #                     "title": "Greeting",
-    #                     "type": "object",
-    #                 }
-    #             },
-    #             "required": ["greeting"],
-    #             "title": "FunctionParameters",
-    #             "type": "object",
-    #         },
-    #     },
-    # }
+
+def test_register_fails_if_param_misses_description():
+    taifun = Taifun()
+
+    def register_function():
+        # this funciton uses wrong format therefore it should fail
+        @taifun.fn()
+        def hello(name: str):
+            """
+            Say hello
+
+            Parameters
+            ----------
+            name(str): The name of the person to say hello to
+
+            """
+            return f"Hello {name}"
+
+    pytest.raises(MissingDescriptionError, register_function)
