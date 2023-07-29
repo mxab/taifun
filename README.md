@@ -1,10 +1,15 @@
 # Taifun - Typed AI Functions
 
 A simple framework for creating typed AI functions.
+It inspects the function's docstring and parameters to provide functions for OpenAI's API.
+You can either use the `Taifun` class to create a dict of functions to pass to OpenAI's API or use the `TaifunConversationRunner` class to run a conversation with functions.
 
-It inspects the function's docstring and parameters to create functions for OpenAI's API.
+## Installation
 
-Then takes a task and loops through the conversational flow until the task is complete.
+```bash
+pip install taifun
+```
+
 
 
 ## Usage
